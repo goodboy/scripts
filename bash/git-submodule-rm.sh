@@ -1,6 +1,8 @@
 #!/bin/bash
 # from gist:2491147 (by barraponto)
 #
+# Usage: git submodule rm <path>
+#
 # as a reminder the normal manual process is:
 # To remove a submodule you need to:
 # 1)Delete the relevant section from the .gitmodules file.
