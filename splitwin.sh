@@ -5,4 +5,4 @@ if [[ $# < 1 ]]; then
     echo "most likely opened a 'blank' tmux pane..."
 fi
 
-tmux split-window -v "$*"
+exec tmux split-window -v "$*"
