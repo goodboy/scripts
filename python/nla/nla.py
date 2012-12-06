@@ -1,13 +1,28 @@
 #/usr/bin/env python
 # a tool for analyzing NCA logs - NCA Log Analyzer
 
-import csv
+# TODO: 
+# -implement front end logfile segmenter
+# -implement stats computation
+# -implement xml parser
+# -implement signalling parser
+# -implement wav file plotter
 
-def parse_csv(f):
+import csv 
+import sys, getopt
+
+def open_csv(f):
+    # open and close the file resource all in one block
+    # try / catch to validate csv file
     try:
         csvfile = open(f, 'rb')
-    except:
-        print >> sys.stderr, "Error: couldn't open csv file!"
+        print "opening csv file:", f
+        loglist = csv.reader(csvfile)  # delimiter=','
+        return loglist
+    
+    except csv.Error, err:
+        print "Error:", exc
+        sys.exit(1)
 
 def usage():
     """help function"""
@@ -16,23 +31,34 @@ def usage():
       
 # parse the cpa-stats.csv file
 def main(argv):
-    "main entry point"
+    """main entry point"""
     try:
-        (optlist, args) = getopt.getopt(argv[1:], "h:", ("help",))
+        (optlist, args) = getopt.gnu_getopt(argv[1:], "h:s:", ("help","stats"))
     except getopt.GetoptError, exc:
         print "Error:", exc
         sys.exit(usage())
 
-        # make sure we pass a filename
-        if opt[0] == "":
+    for opt in optlist:
+        if opt[0] == "-h" or opt[0] == "--help":
             usage()
             sys.exit(0)
+        if opt[0] == "-s" or opt[0] == "--stats":
+            showstats = True
+            print "enabled stats!"
+            continue
 
-    for opt in optlist:
+    try:
+        row = open_csv(args[0])
+        print "row = ", row.next()
 
-    if len(args) > 0:
+    except cvs.error, err:
+        print "Error:", exc
+        sys.exit(1)
+
+    if len(args) > 1:
         print "Error: excess args '%s ...'" % args[0]
         sys.exit(usage())
 
-
 main(sys.argv)
+(optlist, args) = getopt.gnu_getopt(sys.argv[1:], "h:s:", ("help","stats"))
+row = open_csv(args[0])
