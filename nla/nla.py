@@ -9,7 +9,6 @@
 # -implement signalling parser
 # -implement wav file plotter
 
-import csv
 import sys
 import getopt
 from callset import CallSet
