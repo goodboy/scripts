@@ -22,10 +22,16 @@ class CallSet(object):
             # first line should be the title
             self._title = next(self._reader)
             # second line should be the field names
-            self._fields = tuple(next(self._reader))
+            fields = next(self._reader)
+
+            indices = [i for i in range(len(fields))]
+            self._fields = list(zip(indices, fields))
 
             # build out data set
-            self._buildlist()
+            # self._buildlist()
+            self._rows = [row for row in self._reader]
+
+            # self._buildset()
 
             # query user if they would like to scan the logs
             # self._scanlogs
@@ -34,9 +40,13 @@ class CallSet(object):
             print('file %s, line %d: %s' % (csv_buffer, self._reader.line_num, err))
             print("Error:", exc)
             sys.exit(1)
+
+    # def _buildset(self):
+    # """csv.reader, list of fields -> list of dicts = csv rows"""
+        # use a list comprehension to generate our entries
             
     def _buildlist(self):
-        """csv.reader, list of fields -> list of dicts = csv rows"""
+    # """csv.reader, list of fields -> list of dicts = csv rows"""
         self._row = []
 
         # build a list of csv/call entries
@@ -44,7 +54,7 @@ class CallSet(object):
             # self.line_num = self._reader.line_num
 
             # d = list(zip(self._fields, entry))
-            d = entry
+            e = entry
             lf = len(self.fields)
             le = len(entry)
             if lf < le:
@@ -68,9 +78,9 @@ class CallSet(object):
         return None
         
     @property
-    def row(self):
+    def row(self, row_number):
         """Access to the csv reader"""
-        return self._reader
+        return self._rows[row_number]
 
     @property
     def dict_reader(self):
