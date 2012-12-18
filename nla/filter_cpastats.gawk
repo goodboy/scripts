@@ -6,8 +6,9 @@
 # Time Queued,Time Connected to Agent,Detailed Cpd Result
 BEGIN { 
 
-	# config output options
-	stats = 0
+	# configure output options
+	stats = 1
+	filter = 0
 	rando = 0
 	output = 0
 	output_file = "results.txt"
@@ -24,11 +25,13 @@ BEGIN {
 # only comma delimited lines
 FNR==NR {
 
-	# copy the title line
-	if (NR == 1) { title = $0 }
+	if( filter = 0) {
+		# copy the title line
+		if (NR == 1) { title = $0; next }
 
-	# copy the second line
-	if (NR == 2) { field_record = $0 }
+		# copy the second line
+		if (NR == 2) { field_record = $0; next }
+	}
 
 	#check formatting (put in own routine?)
 	#if (NF != 12) {
