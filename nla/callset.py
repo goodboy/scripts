@@ -1,66 +1,86 @@
 # interface for a call set
+# Python3 implementation
 import time
 import datetime
 import csv
 
 class CallSet(object):
-    def __init__(self, csv_buffer, callset_id):
+    def __init__(self, csv_file, callset_id):
         self._id = callset_id
         self.length = 0
 
         # try to open csv file and return a reader/iterator
         try:
-            print("opening csv file: '" + csv_buffer + "'")
+            print("opening csv file: '" + csv_file + "'")
             print("assigning callset id: '" + str(callset_id) + "'")
-            csv_file = open(csv_buffer, 'rb')
-            self.reader = csv.reader(csv_file) # default delimiter=','
+            
+            csv_buffer = open(csv_file, newline='')
+
+            #TODO: add a csv sniffer here to determine a dialect
+            self._reader = csv.reader(csv_buffer) # default delimiter=','
 
             # first line should be the title
-            # self._title = self._reader.next()
-
+            self._title = next(self._reader)
             # second line should be the field names
-            # self._fields = self._reader.next()
+            fields = next(self._reader)
 
-            # DictReader takes a list of field keys
-            # self._dict_reader = csv.DictReader(csv_file, self._fields)
+            indices = [i for i in range(len(fields))]
+            self._fields = list(zip(indices, fields))
 
-            #TODO: 
-                # check for logs for each entry
-                # report errors if logs not found etc.
+            # build out data set
+            # self._buildlist()
+            self._rows = [row for row in self._reader]
+
+            # self._buildset()
+
+            # query user if they would like to scan the logs
+            # self._scanlogs
 
         except csv.Error as err:
             print('file %s, line %d: %s' % (csv_buffer, self._reader.line_num, err))
             print("Error:", exc)
             sys.exit(1)
 
-    def _buildset(reader, fields):
-        """csv.reader, list of fields -> list of dicts = csv rows"""
-    # consider changing this to use lists (for speed) of fields and then
-    # map to a dict for field access?
-        # if self.line_num == 0:
+    # def _buildset(self):
+    # """csv.reader, list of fields -> list of dicts = csv rows"""
+        # use a list comprehension to generate our entries
+            
+    def _buildlist(self):
+    # """csv.reader, list of fields -> list of dicts = csv rows"""
+        self._row = []
 
-        # each row contains a dictionary of fields
-        row = []
-        # iterate through the iterable
+        # build a list of csv/call entries
         for entry in self._reader:
             # self.line_num = self._reader.line_num
-            self.length += 1
 
-            d = dict(zip(self.fields, entry))
+            # d = list(zip(self._fields, entry))
+            e = entry
             lf = len(self.fields)
             le = len(entry)
             if lf < le:
+                # store overloaded fields in CallSet.restkey
                 d[self.restkey] = entry[lf:]
             elif lf > le:
                 for key in self.fields[le:]:
                     d[key] = None
-        return row.append(d)
+            self._row.append(d)
+            # del d -> should this be here?
 
-    # read-only properties
-    # @property
-    # def reader(self):
-    #     """Access to the csv reader"""
-    #     return self._reader
+        # record the length of the set
+        self.length = len(self._row)
+
+
+    def _scan_logs(self, logdir):
+    #TODO: 
+    # check for logs for each entry
+    # report errors if logs not found etc.
+    # search for logs in pwd and/or pointed dir
+        return None
+        
+    @property
+    def row(self, row_number):
+        """Access to the csv reader"""
+        return self._rows[row_number]
 
     @property
     def dict_reader(self):
@@ -89,8 +109,9 @@ class CallSet(object):
         return None
 
     # filter closure
-    def filter(filterfunction):
-# should work where you call filter(remove(key="result"))
+    def filter(predicate):
+    # """filter applied to a predicate and a list returns the list of those elements that satisfy the predicate"""
+    # should work where you call filter(remove(key="result"))
         return None
 
 
