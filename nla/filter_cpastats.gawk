@@ -1,6 +1,6 @@
 #!/bin/gawk -f
 
-# Fields of the csv in order are:
+# Default fields of the csv in order are:
 # Netborder Call-id,Call Date,Reference ID,Campaign Name,Phone Number,
 # NCA Engine Result,Time Dialing,Time Connected,Time NCA Engine Completed,
 # Time Queued,Time Connected to Agent,Detailed Cpd Result
@@ -8,8 +8,9 @@ BEGIN {
 
 	# configure output options
 	stats = 1
-	filter = 0
+	filter = 1
 	rando = 0
+
 	output = 0
 	output_file = "results.txt"
 
@@ -20,17 +21,44 @@ BEGIN {
 	call_date     = 2
 	number        = 5
 	cpe_result    = 6
-	detail_result = NF
+	detail_result = 12
+	random_field  = 15
 }
 # only comma delimited lines
 FNR==NR {
 
-	if( filter = 0) {
+	if( filter = 1) {
+
 		# copy the title line
-		if (NR == 1) { title = $0; next }
+		if (NR == 1) { title = $0; print; next }
 
 		# copy the second line
-		if (NR == 2) { field_record = $0; next }
+		if (NR == 2) { field_record = $0; print; next }
+
+		# skip all lines with results we don't need
+		if( $cpe_result ~ /No-/ || $cpe_result ~ /Reject/) {
+			next
+			# do other shit like log call id and move files to a new dir for later processing
+		}
+
+		if( $detail_result ~ /Reject/) {
+			next
+			# do other shit like log call id and move files to a new dir for later processing
+		}
+
+		# skip entries which are calls to previous numbers
+		if($number in phonenum) {
+			print "CALL TO DUPLICATE NUMBER!...skipping record: " NR "\n"
+			next
+		}else{
+
+			# add entries which have not been added yet
+			phonenum[$number]++
+			lastcall[$number] = $0
+
+			# output all allowed records
+			print
+		}
 	}
 
 	#check formatting (put in own routine?)
@@ -39,30 +67,17 @@ FNR==NR {
 	#	print "detected non-formatted line!"
 	#}else{
 
-		# note: all gawk arrays are associative
+	# stats arrays
+		# NOTE: all gawk arrays are associative
 		cpe_res_count[$cpe_result]++
 		detail-res_count[$detail_result]++
 
+	# assuming random field points to marking of correct vs. incorrect dispositions
+		mark = $random_field
+		correct_result[mark]++
+
 		# sum up all dispositions
 		dispsum++
-
-		# remove all lines with "No-Answer"
-		if( $cpe_result ~ /No-/) {
-			next
-			# do other shit like log call id and move files to a new dir for later processing
-		}
-
-		# skip entries which are calls to old numbers
-		if($number in phonenum) {
-			next
-		}else{
-
-			# add entries which have not been added yet
-			phonenum[$number]++
-			lastcall[$number] = $0
-			print
-		}
-
 	#}
 }
 
@@ -92,6 +107,7 @@ END {
 	# print stats?
 	if( stats == 1) {
 		# print the results
+		print "\n"
 		print "Summary:"
 		for(i in cpe_res_count) {
 			percent[i] = 100 * cpe_res_count[i] / dispsum
@@ -101,5 +117,11 @@ END {
 		}
 		print "---"
 		printf("%-6d total\n", dispsum)
+
+		print "\n"
+		print "Performance:"
+		for(i in correct_result) {
+			print i " marked " correct_result[i] " times"
+		}
 	}
 }
