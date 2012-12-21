@@ -3,6 +3,9 @@
 csvfile="$1"
 [[ -z "$csvfile" ]] && { echo "ERROR: you must pass a csp-stats.csv file as input!"; exit 1; }
 
+searchdir="$2"
+[[ -z "$searchdir" ]] && { echo "ERROR: you must pass a directory to search as the 2nd argument"; exit 1; }
+
 sa_package_dir="./sa_package"
 if [[ -e $sa_package_dir ]]; then
     echo
@@ -51,7 +54,7 @@ while read line; do
     echo "looking for $pat ..."
 
     # create an array of the found log files
-    loglist=("$(find ./ -regex "^.*${pat}.*")")
+    loglist=("$(find ./$searchdir -regex "^.*${pat}.*")")
 
     if [[ -n "${loglist[*]}" ]]; then
         echo "found log files:"
@@ -168,10 +171,16 @@ linecount="$(gawk '/\,/ { if(NR == 2){next}; count++ } END { print count}' $csvf
 echo
 echo "number of files found = $count"
 echo "line count in provided csv file '$csvfile' is $linecount"
+echo
 unset count
 
 cp $csvfile "$sa_package_dir/cpa-stats.csv"
 cd $sa_package_dir
 if (( z == 1 )); then
+    echo "zipping up package..."
     zip -r package.zip ./* > /dev/null
 fi
+echo
+echo "New stats-analyzer package is => $sa_package_dir"
+echo "New generic package is => $new_dataset_dir"
+echo "done."
