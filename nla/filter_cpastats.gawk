@@ -7,9 +7,9 @@
 BEGIN { 
 
 	# configure output options
-	stats = 1
+	stats  = 1
 	filter = 1
-	rando = 0
+	rando  = 0
 
 	output = 0
 	output_file = "results.txt"
@@ -29,32 +29,43 @@ FNR==NR {
 
 	if( filter = 1) {
 
-		# copy the title line
+		# print the title line
 		if (NR == 1) { title = $0; print; next }
 
-		# copy the second line
+		# print the second line
 		if (NR == 2) { field_record = $0; print; next }
 
 		# skip all lines with results we don't need
-		if( $cpe_result ~ /No-/ || $cpe_result ~ /Reject/) {
+		if( $cpe_result ~ /No-/ || $cpe_result ~ /Service-Unavailable/ || $cpe_result ~ /Invalid-Number/) {
 			next
 			# do other shit like log call id and move files to a new dir for later processing
 		}
 
-		if( $detail_result ~ /Reject/) {
-			next
+		# remove calls marked as rejects
+		#if( $detail_result ~ /Reject/) {
+			#next
 			# do other shit like log call id and move files to a new dir for later processing
-		}
+		#}
 
-		# skip entries which are calls to previous numbers
 		if($number in phonenum) {
-			print "CALL TO DUPLICATE NUMBER!...skipping record: " NR "\n"
+			if (stats == 1) {
+				print "CALL TO DUPLICATE NUMBER : " $number 
+				print " ...skipping record: " NR "\n"
+			}
+
+			# update entry count in our database
+			phonenum[$number]++
+
+			# skip this call since we've already called it
 			next
+
 		}else{
 
-			# add entries which have not been added yet
-			phonenum[$number]++
+			# add entries which have not been added yet (only works if output flag is on)
 			lastcall[$number] = $0
+
+			# insert entry to our database
+			phonenum[$number]++
 
 			# output all allowed records
 			print
@@ -108,12 +119,20 @@ END {
 	if( stats == 1) {
 		# print the results
 		print "\n"
+		print "Redundancy:"
+		for(num in phonenum) {
+			if( phonenum[num] > 1) {
+				print "number: " num " was called " phonenum[num] " times"
+			}
+		}
+
+		print "\n"
 		print "Summary:"
 		for(i in cpe_res_count) {
 			percent[i] = 100 * cpe_res_count[i] / dispsum
 
 			# printf fields format: %<sign><zero><width>.<precision>format
-			printf("%-6d %-18s  %-5.1f (%)\n", cpe_res_count[i], i, percent[i])
+			printf("%-6d %-20s  %-5.1f (%)\n", cpe_res_count[i], i, percent[i])
 		}
 		print "---"
 		printf("%-6d total\n", dispsum)
