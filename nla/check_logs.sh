@@ -165,6 +165,8 @@ while read line; do
     fi
     unset loglist
     unset wavs
+    unset sorted_wavlist
+    unset infile
 done < $csvfile
 
 # filter csv to skip title and field names
