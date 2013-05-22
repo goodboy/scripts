@@ -1,0 +1,6 @@
+toronto.voip.ms
+toronto2.voip.ms
+montreal.voip.ms
+seattle.voip.ms
+chicago.voip.ms
+newyork.voip.ms
